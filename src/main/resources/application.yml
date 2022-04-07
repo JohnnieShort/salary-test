@@ -1,0 +1,2 @@
+client:
+  team-work-time-url: ${TEAM_WORK_TIME_URL:https://getworkingtime.com}
