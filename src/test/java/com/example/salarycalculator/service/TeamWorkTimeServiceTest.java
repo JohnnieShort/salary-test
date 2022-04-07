@@ -3,6 +3,7 @@ package com.example.salarycalculator.service;
 import com.example.salarycalculator.client.TeamWorkTimeClient;
 import com.example.salarycalculator.client.dto.TeamWorkTimeDto;
 import com.example.salarycalculator.model.Employee;
+import com.example.salarycalculator.model.EmployeeWithSalary;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.range.IntegerRangeRandomizer;
@@ -34,21 +35,21 @@ class TeamWorkTimeServiceTest {
     private TeamWorkTimeClient teamWorkTimeClient;
 
     @Test
-    void setSalaryForTeam_ShouldCorrectlyDistributeMoneyAmount() {
+    void setSalaryForTeam_shouldCorrectlyDistributeMoneyAmount() {
         final String teamIdStr = String.valueOf(Math.random());
         final Integer mitArbeiterId = Integer.valueOf(teamIdStr.substring(teamIdStr.length() -3));
         final List<Employee> teamMock = getTeamMock(mitArbeiterId);
         final Integer timeWorkedByTeam = teamMock
                 .stream()
-                .map(Employee::getWorkTimeAmountMinutes)
+                .map(Employee::getWorkTimeAmountTimeUnits)
                 .reduce(0, Integer::sum);
         final List<TeamWorkTimeDto> teamWorkTimeMock = getTeamWorkTimeMock(mitArbeiterId, timeWorkedByTeam);
         Mockito.when(teamWorkTimeClient.getTeamWorkTime(any(Date.class), any(Date.class))).thenReturn(teamWorkTimeMock);
 
-        subject.setSalaryForTeam(teamMock, 10000.0, new Date(), new Date());
+        List<EmployeeWithSalary> actual = subject.setSalaryForTeam(teamMock, 10000.0, new Date(), new Date());
 
-        assertEquals(teamWorkTimeMock.get(0).getDauer(), teamMock.stream().map(Employee::getWorkTimeAmountMinutes).reduce(0, Integer::sum));
-        assertEquals(10000, teamMock.stream().map(Employee::getSalary).reduce(0.0, Double::sum));
+        assertEquals(teamWorkTimeMock.get(0).getDauer(), teamMock.stream().map(Employee::getWorkTimeAmountTimeUnits).reduce(0, Integer::sum));
+        assertEquals(10000, actual.stream().map(EmployeeWithSalary::getSalary).reduce(0.0, Double::sum));
     }
 
     private List<Employee> getTeamMock(Integer mitArbeiterId) {
@@ -60,7 +61,6 @@ class TeamWorkTimeServiceTest {
     private Employee getEmployeeMock(Integer mitArbeiterId) {
         Employee employee = random.nextObject(Employee.class);
         employee.setMitarbeiterId(mitArbeiterId);
-        employee.setSalary(0.0);
         return employee;
     }
 
